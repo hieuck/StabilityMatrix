@@ -1,0 +1,45 @@
+@echo off
+setlocal
+
+:: Xác định thư mục hiện tại của script
+set "current_dir=%~dp0"
+
+:: Biến lưu trữ đường dẫn đến thư mục custom_nodes (nếu tìm thấy)
+set "custom_nodes_dir="
+
+:: Tìm thư mục custom_nodes trong ComfyUI và Data\Packages\ComfyUI từ thư mục gốc trở đi
+:find_comfyui_custom_nodes
+:: Kiểm tra thư mục %current_dir%\ComfyUI\custom_nodes
+if exist "%current_dir%ComfyUI\custom_nodes" (
+    set "custom_nodes_dir=%current_dir%ComfyUI\custom_nodes"
+    goto setup_custom_nodes
+)
+
+:: Kiểm tra thư mục %current_dir%\Data\Packages\ComfyUI\custom_nodes
+if exist "%current_dir%Data\Packages\ComfyUI\custom_nodes" (
+    set "custom_nodes_dir=%current_dir%Data\Packages\ComfyUI\custom_nodes"
+    goto setup_custom_nodes
+)
+
+:: Nếu không tìm thấy, lùi lại một cấp và thử lại
+set "current_dir=%current_dir%.."
+if "%current_dir%"=="%~d0\" (
+    echo Error: Could not find custom_nodes directory under ComfyUI or Data\Packages\ComfyUI!
+    exit /b 1
+)
+goto find_comfyui_custom_nodes
+
+:setup_custom_nodes
+:: Chuyển đến thư mục custom_nodes và clone repository
+cd /d "%custom_nodes_dir%"
+echo Found custom_nodes at "%custom_nodes_dir%"
+echo Cloning repository into "%custom_nodes_dir%"...
+git clone https://github.com/ltdrdata/ComfyUI-Manager.git
+
+:: Kiểm tra kết quả lệnh git clone
+if %errorlevel% equ 0 (
+    echo Repository cloned successfully!
+) else (
+    echo An error occurred while cloning the repository.
+)
+pause
